@@ -87,11 +87,11 @@ export function ShadeDrop({ shade, selected = false }: { shade: Shade; selected?
 export function ProductRow({ product, selected, onClick }: { product: Product; selected: boolean; onClick: () => void }) {
   return (
     <button className={`product-row ${selected ? "is-selected" : ""}`} onClick={onClick} aria-pressed={selected}>
-      <Bottle product={product} size="sm" />
+      <Bottle product={product} size="lg" />
       <span className="product-row__copy">
-        <strong>{product.brand}</strong>
-        <span>{product.name}</span>
-        <small>{product.description}</small>
+        <small>{product.brand}</small>
+        <strong>{product.name}</strong>
+        <span>{finishLabels[product.finish]} финиш</span>
       </span>
       <span className="select-mark" aria-hidden="true">{selected ? "✓" : ""}</span>
     </button>

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
   ArrowLeft,
@@ -59,6 +59,25 @@ function getSourceSummary(sourceShadeId: string | null) {
 export function HomePage() {
   const navigate = useNavigate();
   const { saved } = useAppStore();
+
+  useEffect(() => {
+    const elements = Array.from(document.querySelectorAll<HTMLElement>(".reveal-on-scroll"));
+    if (!("IntersectionObserver" in window)) {
+      elements.forEach((element) => element.classList.add("is-visible"));
+      return;
+    }
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add("is-visible");
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.16, rootMargin: "0px 0px -36px" });
+    elements.forEach((element) => observer.observe(element));
+    return () => observer.disconnect();
+  }, []);
+
   return (
     <section className="screen home-screen">
       <header className="home-header">
@@ -81,26 +100,27 @@ export function HomePage() {
         <PrimaryButton onClick={() => navigate("/select")}>Подобрать оттенок <ArrowRight size={19} /></PrimaryButton>
         <button className="text-button" onClick={() => document.getElementById("how")?.scrollIntoView({ behavior: "smooth" })}>Как это работает</button>
       </div>
-      <section className="how-it-works" id="how" aria-labelledby="how-title">
+      <div className="story-bridge reveal-on-scroll" aria-hidden="true"><span>От знакомого оттенка<br />к новому совпадению</span><i /></div>
+      <section className="how-it-works reveal-on-scroll" id="how" aria-labelledby="how-title">
         <p className="eyebrow">ПРОСТОЙ ПУТЬ К СВОЕМУ ТОНУ</p>
         <h2 id="how-title">Как это работает?</h2>
         <div className="how-steps">
-          <article className="how-step how-step--left">
+          <article className="how-step reveal-on-scroll">
             <span>01</span>
             <div><h3>Расскажи о своей коже</h3><p>Укажи подтон и тип кожи — это поможет точнее определить подходящее направление оттенка.</p></div>
           </article>
-          <article className="how-step how-step--right">
+          <article className="how-step reveal-on-scroll reveal-delay-1">
             <span>02</span>
             <div><h3>Добавь свои тональные средства</h3><p>Выбери несколько знакомых средств и укажи оттенок каждого из них.</p></div>
           </article>
-          <article className="how-step how-step--left">
+          <article className="how-step reveal-on-scroll reveal-delay-2">
             <span>03</span>
             <div><h3>Получи рекомендации</h3><p>Сравним твои эталоны с базой брендов и покажем наиболее близкие варианты.</p></div>
           </article>
         </div>
         <SecondaryButton onClick={() => navigate("/select")}>Начать подбор <ArrowRight size={18} /></SecondaryButton>
       </section>
-      <section className="trust-numbers" aria-labelledby="trust-title">
+      <section className="trust-numbers reveal-on-scroll" aria-labelledby="trust-title">
         <p className="eyebrow">СКИНКОД В ЦИФРАХ</p>
         <h2 id="trust-title">Цифры, которым доверяют</h2>
         <div className="trust-grid">
@@ -122,6 +142,8 @@ export function ProductSearchPage() {
   const filtered = normalizedQuery
     ? products.filter((product) => `${product.brand} ${product.name}`.toLowerCase().includes(normalizedQuery))
     : products.filter((product) => popularProductIds.has(product.id));
+  const searchSuggestions = normalizedQuery ? filtered.slice(0, 4) : [];
+  const brandHints = ["MAC", "3INA", "ESSENCE", "PAYOT"];
 
   return (
     <section className="screen flow-screen">
@@ -137,6 +159,22 @@ export function ProductSearchPage() {
         <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Бренд или название" autoFocus />
         {query && <button onClick={() => setQuery("")} aria-label="Очистить поиск">×</button>}
       </label>
+      {normalizedQuery && searchSuggestions.length > 0 ? (
+        <div className="search-suggestions" aria-label="Подсказки поиска">
+          {searchSuggestions.map((product) => (
+            <button key={product.id} onClick={() => setQuery(`${product.brand} ${product.name}`)}>
+              <Bottle product={product} size="sm" />
+              <span><strong>{product.brand}</strong><small>{product.name}</small></span>
+              <ChevronRight size={17} />
+            </button>
+          ))}
+        </div>
+      ) : !normalizedQuery ? (
+        <div className="search-hints" aria-label="Быстрый поиск по бренду">
+          <span>Попробуй:</span>
+          {brandHints.map((brand) => <button key={brand} onClick={() => setQuery(brand)}>{brand}</button>)}
+        </div>
+      ) : null}
       <p className="field-caption">{query ? `Найдено: ${filtered.length}` : "Популярные средства"}</p>
       <div className="product-list">
         {filtered.map((product) => (
