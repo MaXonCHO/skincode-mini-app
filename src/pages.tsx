@@ -30,6 +30,7 @@ import {
   ProductRow,
   ResultCard,
   SecondaryButton,
+  ShadeDrop,
   Swatch,
   Wordmark,
 } from "./components";
@@ -80,13 +81,34 @@ export function HomePage() {
         <PrimaryButton onClick={() => navigate("/select")}>Подобрать оттенок <ArrowRight size={19} /></PrimaryButton>
         <button className="text-button" onClick={() => document.getElementById("how")?.scrollIntoView({ behavior: "smooth" })}>Как это работает</button>
       </div>
-      <GlassCard className="how-card">
-        <span className="section-index">01</span>
-        <div id="how">
-          <strong>Выбери знакомое средство</strong>
-          <p>Мы сравним его оттенок с локальной базой демонстрационных соответствий.</p>
+      <section className="how-it-works" id="how" aria-labelledby="how-title">
+        <p className="eyebrow">ПРОСТОЙ ПУТЬ К СВОЕМУ ТОНУ</p>
+        <h2 id="how-title">Как это работает?</h2>
+        <div className="how-steps">
+          <article className="how-step how-step--left">
+            <span>01</span>
+            <div><h3>Расскажи о своей коже</h3><p>Укажи подтон и тип кожи — это поможет точнее определить подходящее направление оттенка.</p></div>
+          </article>
+          <article className="how-step how-step--right">
+            <span>02</span>
+            <div><h3>Добавь свои тональные средства</h3><p>Выбери несколько знакомых средств и укажи оттенок каждого из них.</p></div>
+          </article>
+          <article className="how-step how-step--left">
+            <span>03</span>
+            <div><h3>Получи рекомендации</h3><p>Сравним твои эталоны с базой брендов и покажем наиболее близкие варианты.</p></div>
+          </article>
         </div>
-      </GlassCard>
+        <SecondaryButton onClick={() => navigate("/select")}>Начать подбор <ArrowRight size={18} /></SecondaryButton>
+      </section>
+      <section className="trust-numbers" aria-labelledby="trust-title">
+        <p className="eyebrow">СКИНКОД В ЦИФРАХ</p>
+        <h2 id="trust-title">Цифры, которым доверяют</h2>
+        <div className="trust-grid">
+          <div><strong>50+</strong><span>брендов в базе</span></div>
+          <div><strong>2 <small>мин</small></strong><span>до результата</span></div>
+          <div><strong>5</strong><span>лучших мэтчей в подборке рекомендаций</span></div>
+        </div>
+      </section>
     </section>
   );
 }
@@ -142,12 +164,11 @@ export function ShadeSelectPage() {
   const navigate = useNavigate();
   const { sourceProductIds, sourceShadeIds, setSourceShadeForProduct } = useAppStore();
   const [activeIndex, setActiveIndex] = useState(0);
-  const [query, setQuery] = useState("");
   const selectedProducts = sourceProductIds.map((id) => products.find((item) => item.id === id)).filter((item): item is (typeof products)[number] => Boolean(item));
   const product = selectedProducts[activeIndex];
   const [focusedShadeId, setFocusedShadeId] = useState<string | null>(null);
   if (!product) return <MissingSelection />;
-  const shades = product.shades.filter((shade) => shade.code.toLowerCase().includes(query.toLowerCase().trim()));
+  const shades = product.shades;
   const selectedShadeId = sourceShadeIds[product.id] ?? null;
   const completedCount = selectedProducts.filter((item) => sourceShadeIds[item.id]).length;
   const allComplete = completedCount === selectedProducts.length;
@@ -155,7 +176,6 @@ export function ShadeSelectPage() {
   const selectProduct = (index: number) => {
     const nextProduct = selectedProducts[index];
     setActiveIndex(index);
-    setQuery("");
     setFocusedShadeId(sourceShadeIds[nextProduct.id] ?? nextProduct.shades[0]?.id ?? null);
   };
 
@@ -209,11 +229,6 @@ export function ShadeSelectPage() {
         <Bottle product={product} size="lg" />
         <div><strong>{product.brand}</strong><h3>{product.name}</h3><p>{product.description}</p></div>
       </GlassCard>
-      <label className="search-field">
-        <span className="sr-only">Код оттенка</span>
-        <Search size={20} />
-        <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Поиск оттенка, например NC20" />
-      </label>
       <div className="shade-carousel-shell">
         <button className="carousel-arrow carousel-arrow--left" onClick={() => moveShade(-1)} aria-label="Предыдущий оттенок"><ChevronLeft size={22} /></button>
         <div className="shade-carousel" role="listbox" aria-label={`Оттенки ${product.brand} ${product.name}`}>
@@ -227,7 +242,7 @@ export function ShadeSelectPage() {
               role="option"
               aria-selected={selectedShadeId === shade.id}
             >
-              <Swatch shade={shade} selected={selectedShadeId === shade.id} />
+              <ShadeDrop shade={shade} selected={selectedShadeId === shade.id} />
               <strong>{shade.code}</strong>
               <small>{shade.name}</small>
               <span className="shade-check" aria-hidden="true">{selectedShadeId === shade.id ? <Check size={15} /> : null}</span>
@@ -236,8 +251,7 @@ export function ShadeSelectPage() {
         </div>
         <button className="carousel-arrow carousel-arrow--right" onClick={() => moveShade(1)} aria-label="Следующий оттенок"><ChevronRight size={22} /></button>
       </div>
-      {!shades.length && <p className="carousel-empty">Оттенок с таким кодом не найден.</p>}
-      <div className="info-row"><Info size={18} /><span>Цвет кружка — только ориентир. Сверь код на упаковке.</span></div>
+      <div className="info-row"><Info size={18} /><span>Цвет мазка — только ориентир. Сверь код на упаковке.</span></div>
       <div className="sticky-actions">
         <PrimaryButton disabled={!selectedShadeId || (activeIndex === selectedProducts.length - 1 && !allComplete)} onClick={continueFlow}>
           {activeIndex < selectedProducts.length - 1 ? <>Следующее средство <ArrowRight size={19} /></> : <>Продолжить <ArrowRight size={19} /></>}
@@ -249,9 +263,13 @@ export function ShadeSelectPage() {
 
 export function FitPage() {
   const navigate = useNavigate();
-  const { sourceShadeId, fit, shifts, setFit, toggleShift } = useAppStore();
-  const { product, shade } = getSourceSummary(sourceShadeId);
-  if (!product || !shade) return <MissingSelection />;
+  const { sourceProductIds, sourceShadeIds, fit, shifts, setFit, toggleShift } = useAppStore();
+  const references = sourceProductIds.map((productId) => {
+    const product = products.find((item) => item.id === productId);
+    const shade = findShade(sourceShadeIds[productId]);
+    return product && shade ? { product, shade } : null;
+  }).filter((item): item is { product: (typeof products)[number]; shade: NonNullable<ReturnType<typeof findShade>> } => Boolean(item));
+  if (!references.length) return <MissingSelection />;
   const fits: [ToneFit, string][] = [["perfect", "Идеально"], ["lighter", "Светлее кожи"], ["darker", "Темнее кожи"]];
   const shiftOptions: [ToneShift, string][] = [["yellow", "Желтит"], ["pink", "Розовит"]];
   return (
@@ -259,14 +277,18 @@ export function FitPage() {
       <PageHeader step="Шаг 2 из 3" />
       <div className="title-block">
         <p className="eyebrow">УТОЧНЯЕМ ЭТАЛОН</p>
-        <h1>Как он тебе подходит?</h1>
-        <p>Помоги понять, насколько хорошо оттенок тебя описывает.</p>
+        <h1>{references.length > 1 ? "Как они тебе подходят?" : "Как он тебе подходит?"}</h1>
+        <p>Помоги понять, насколько хорошо {references.length > 1 ? "эти оттенки описывают" : "оттенок описывает"} твою кожу.</p>
       </div>
-      <GlassCard className="reference-card">
-        <Bottle product={product} size="md" />
-        <div><strong>{product.brand}</strong><h3>{product.name}</h3><span className="shade-chip">{shade.code}</span></div>
-        <Swatch shade={shade} size="sm" />
-      </GlassCard>
+      <div className="reference-stack" aria-label="Выбранные тональные средства">
+        {references.map(({ product, shade }) => (
+          <GlassCard className="reference-card" key={product.id}>
+            <Bottle product={product} size="md" />
+            <div><strong>{product.brand}</strong><h3>{product.name}</h3><span className="shade-chip">{shade.code}</span></div>
+            <Swatch shade={shade} size="sm" />
+          </GlassCard>
+        ))}
+      </div>
       <fieldset>
         <legend>Как выглядит на твоей коже?</legend>
         <div className="chip-row">{fits.map(([value, label]) => <ChoiceChip key={value} selected={fit === value} onClick={() => setFit(value)}>{label}</ChoiceChip>)}</div>
@@ -276,7 +298,7 @@ export function FitPage() {
         <div className="chip-row">{shiftOptions.map(([value, label]) => <ChoiceChip key={value} selected={shifts.includes(value)} onClick={() => toggleShift(value)}>{label}</ChoiceChip>)}</div>
         <p className="helper-text">Можно отметить отдельно от основной оценки.</p>
       </fieldset>
-      <GlassCard className="add-reference"><Plus size={22} /><div><strong>Добавить ещё средство</strong><p>В прототипе используем один эталон — этого достаточно для демо.</p></div></GlassCard>
+      <button className="add-reference glass-card" onClick={() => navigate("/select")}><Plus size={22} /><div><strong>Изменить список средств</strong><p>Добавь или убери знакомые тональные средства.</p></div></button>
       <div className="sticky-actions">
         <PrimaryButton disabled={!fit} onClick={() => navigate("/preferences")}>Продолжить <ArrowRight size={19} /></PrimaryButton>
         <DemoNote>Подтверждённый оттенок — основа подбора.</DemoNote>

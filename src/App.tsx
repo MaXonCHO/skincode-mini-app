@@ -8,7 +8,6 @@ import {
   FitPage,
   HomePage,
   MissingProductPage,
-  MyShadesPage,
   NoMatchPage,
   PreferencesPage,
   ProductPage,
@@ -59,7 +58,7 @@ function AppRoutes() {
             <Route path="/product/:shadeId" element={<ProductPage />} />
             <Route path="/stores/:shadeId" element={<StoresPage />} />
             <Route path="/feedback/:shadeId" element={<FeedbackPage />} />
-            <Route path="/my-shades" element={<MyShadesPage />} />
+            <Route path="/my-shades" element={<SavedPage />} />
             <Route path="/saved" element={<SavedPage />} />
             <Route path="/no-match" element={<NoMatchPage />} />
             <Route path="/missing" element={<MissingProductPage />} />

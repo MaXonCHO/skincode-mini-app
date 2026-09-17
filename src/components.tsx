@@ -71,6 +71,19 @@ export function Swatch({ shade, selected = false, size = "md" }: { shade: Shade;
   );
 }
 
+export function ShadeDrop({ shade, selected = false }: { shade: Shade; selected?: boolean }) {
+  return (
+    <span
+      className={`shade-drop ${selected ? "is-selected" : ""}`}
+      style={{ "--swatch": shade.swatch } as React.CSSProperties}
+      aria-hidden="true"
+    >
+      <span className="shade-drop__tint" />
+      <img src="/assets/foundation-smear-ui.png" alt="" width="640" height="640" />
+    </span>
+  );
+}
+
 export function ProductRow({ product, selected, onClick }: { product: Product; selected: boolean; onClick: () => void }) {
   return (
     <button className={`product-row ${selected ? "is-selected" : ""}`} onClick={onClick} aria-pressed={selected}>
@@ -118,12 +131,12 @@ export function ResultCard({ product, shade, saved, onSave, onOpen }: {
 
 export function BottomNavigation() {
   const location = useLocation();
-  const shelfIsActive = location.pathname === "/my-shades" || location.pathname === "/saved";
+  const savedIsActive = location.pathname === "/my-shades" || location.pathname === "/saved";
   return (
     <nav className="bottom-nav" aria-label="Основная навигация">
       <NavLink to="/" end><Home size={22} /><span>Главная</span></NavLink>
       <NavLink to="/select"><Search size={22} /><span>Подбор</span></NavLink>
-      <NavLink to="/my-shades" className={shelfIsActive ? "active" : undefined}><Bookmark size={22} /><span>Мои тона</span></NavLink>
+      <NavLink to="/saved" className={savedIsActive ? "active" : undefined}><Bookmark size={22} /><span>Сохранённое</span></NavLink>
     </nav>
   );
 }
