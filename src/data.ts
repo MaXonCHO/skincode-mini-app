@@ -1,0 +1,217 @@
+import type { DemoMatch, Product } from "./types";
+
+export const products: Product[] = [
+  {
+    id: "mac-studio-fix",
+    brand: "MAC",
+    name: "Studio Fix Fluid",
+    description: "Стойкий тональный крем с естественно-матовым финишем",
+    finish: "matte",
+    skinTypes: ["oily", "combination", "normal"],
+    price: 4200,
+    available: true,
+    bottle: "round",
+    shades: [
+      { id: "mac-nc15", code: "NC15", name: "светлый тёплый", swatch: "#efd0b5" },
+      { id: "mac-nc20", code: "NC20", name: "светлый нейтральный", swatch: "#dca97e" },
+      { id: "mac-nc25", code: "NC25", name: "светло-средний тёплый", swatch: "#d7a06f" },
+      { id: "mac-nc30", code: "NC30", name: "средний тёплый", swatch: "#c58d5d" },
+      { id: "mac-nw15", code: "NW15", name: "светлый розовый", swatch: "#edc6ac" },
+      { id: "mac-nw20", code: "NW20", name: "светлый нейтрально-розовый", swatch: "#d9aa92" },
+    ],
+  },
+  {
+    id: "dior-forever",
+    brand: "Dior",
+    name: "Forever Skin Glow",
+    description: "Тональный крем с ухаживающей формулой и сиянием",
+    finish: "radiant",
+    skinTypes: ["dry", "normal", "combination"],
+    price: 6500,
+    available: true,
+    bottle: "square",
+    shades: [
+      { id: "dior-1n", code: "1N", name: "нейтральный", swatch: "#e5bb9b" },
+      { id: "dior-1w", code: "1W", name: "тёплый", swatch: "#dbaa7d" },
+      { id: "dior-2n", code: "2N", name: "средний нейтральный", swatch: "#cc956f" },
+    ],
+  },
+  {
+    id: "nars-light-reflecting",
+    brand: "NARS",
+    name: "Light Reflecting",
+    description: "Невесомое покрытие с эффектом естественного сияния",
+    finish: "radiant",
+    skinTypes: ["dry", "normal", "combination"],
+    price: 5700,
+    available: false,
+    bottle: "square",
+    shades: [
+      { id: "nars-deauville", code: "Deauville", name: "светлый нейтральный", swatch: "#e2b58f" },
+      { id: "nars-fiji", code: "Fiji", name: "светлый тёплый", swatch: "#d7a272" },
+      { id: "nars-punjab", code: "Punjab", name: "средний тёплый", swatch: "#c28b62" },
+    ],
+  },
+  {
+    id: "atelier-skin-veil",
+    brand: "ATELIER",
+    name: "Skin Veil",
+    description: "Лёгкое покрытие и естественный финиш",
+    finish: "natural",
+    skinTypes: ["dry", "normal", "combination"],
+    price: 2900,
+    available: true,
+    bottle: "soft",
+    shades: [
+      { id: "atelier-n10", code: "N10", name: "светлый нейтральный", swatch: "#efd0b5" },
+      { id: "atelier-n20", code: "N20", name: "нейтральный", swatch: "#d7a47d" },
+      { id: "atelier-w20", code: "W20", name: "тёплый", swatch: "#cf9668" },
+    ],
+  },
+  {
+    id: "forma-soft-fluid",
+    brand: "FORMA",
+    name: "Soft Fluid",
+    description: "Комфортная текстура на каждый день",
+    finish: "natural",
+    skinTypes: ["normal", "combination", "oily"],
+    price: 3200,
+    available: true,
+    bottle: "round",
+    shades: [
+      { id: "forma-n1", code: "N1", name: "светлый нейтральный", swatch: "#e6bd9d" },
+      { id: "forma-n2", code: "N2", name: "нейтральный", swatch: "#d5a27c" },
+      { id: "forma-w2", code: "W2", name: "тёплый", swatch: "#c98e64" },
+    ],
+  },
+  {
+    id: "rare-weightless",
+    brand: "RARE BEAUTY",
+    name: "Liquid Touch",
+    description: "Воздушное покрытие с натуральным финишем",
+    finish: "natural",
+    skinTypes: ["normal", "combination", "dry"],
+    price: 3600,
+    available: false,
+    bottle: "round",
+    shades: [
+      { id: "rare-170w", code: "170W", name: "светлый тёплый", swatch: "#deb089" },
+      { id: "rare-180w", code: "180W", name: "светло-средний тёплый", swatch: "#d09b73" },
+    ],
+  },
+  {
+    id: "3ina-every-single-day",
+    brand: "3INA",
+    name: "The Every Single Day Foundation",
+    description: "Лёгкий тон на каждый день с SPF 50",
+    finish: "natural",
+    skinTypes: ["dry", "normal", "combination"],
+    price: 2490,
+    available: true,
+    bottle: "square",
+    image: "/assets/product-2-ui.png",
+    shades: [
+      { id: "3ina-600", code: "600", name: "светлый нейтральный", swatch: "#efc8a7" },
+      { id: "3ina-602", code: "602", name: "светлый тёплый", swatch: "#e8b88f" },
+      { id: "3ina-604", code: "604", name: "средний тёплый", swatch: "#d69c70" },
+    ],
+  },
+  {
+    id: "essence-stay-all-day",
+    brand: "ESSENCE",
+    name: "Stay All Day 16h",
+    description: "Стойкое покрытие с матовым финишем",
+    finish: "matte",
+    skinTypes: ["oily", "combination", "normal"],
+    price: 790,
+    available: true,
+    bottle: "square",
+    image: "/assets/product-3-ui.png",
+    shades: [
+      { id: "essence-20", code: "20", name: "soft nude", swatch: "#e8bb93" },
+      { id: "essence-30", code: "30", name: "soft sand", swatch: "#dca578" },
+      { id: "essence-40", code: "40", name: "soft almond", swatch: "#c8895b" },
+    ],
+  },
+  {
+    id: "payot-roselift-cc",
+    brand: "PAYOT",
+    name: "Roselift CC Crème Liftante",
+    description: "Ухаживающий CC-крем с SPF 30 и сияющим финишем",
+    finish: "radiant",
+    skinTypes: ["dry", "normal"],
+    price: 4190,
+    available: true,
+    bottle: "soft",
+    image: "/assets/product-4-ui.png",
+    shades: [
+      { id: "payot-01", code: "01", name: "светлый", swatch: "#ecc7aa" },
+      { id: "payot-02", code: "02", name: "светло-средний", swatch: "#dda980" },
+    ],
+  },
+  {
+    id: "skincode-nude-serum",
+    brand: "SKINCODE LAB",
+    name: "Nude Serum",
+    description: "Демонстрационная сыворотка-тон с естественным финишем",
+    finish: "natural",
+    skinTypes: ["dry", "normal", "combination"],
+    price: 2790,
+    available: true,
+    bottle: "soft",
+    image: "/assets/product-5-ui.png",
+    shades: [
+      { id: "lab-serum-n1", code: "N1", name: "светлый нейтральный", swatch: "#ecc9ab" },
+      { id: "lab-serum-n2", code: "N2", name: "нейтральный", swatch: "#dcaa83" },
+    ],
+  },
+  {
+    id: "skincode-cream-finish",
+    brand: "SKINCODE LAB",
+    name: "Cream Finish",
+    description: "Демонстрационный кремовый тон с мягким сиянием",
+    finish: "radiant",
+    skinTypes: ["dry", "normal"],
+    price: 3190,
+    available: false,
+    bottle: "round",
+    image: "/assets/product-6-ui.png",
+    shades: [
+      { id: "lab-cream-n2", code: "N2", name: "светлый нейтральный", swatch: "#e4b990" },
+      { id: "lab-cream-n3", code: "N3", name: "средний нейтральный", swatch: "#cd936b" },
+    ],
+  },
+];
+
+export const matches: DemoMatch[] = [
+  { sourceShadeId: "mac-nc15", targetShadeId: "atelier-n10", level: "close", explanation: "Близкая глубина тона, более естественный финиш" },
+  { sourceShadeId: "mac-nc15", targetShadeId: "dior-1n", level: "possible", explanation: "Похожая глубина, но формула более сияющая" },
+  { sourceShadeId: "mac-nc15", targetShadeId: "lab-serum-n1", level: "close", explanation: "Близкая глубина в лёгкой сывороточной текстуре" },
+  { sourceShadeId: "mac-nc20", targetShadeId: "atelier-n20", level: "close", explanation: "Близкая глубина и нейтральное направление оттенка" },
+  { sourceShadeId: "mac-nc20", targetShadeId: "forma-n2", level: "close", explanation: "Близкий нейтральный оттенок с комфортной формулой" },
+  { sourceShadeId: "mac-nc20", targetShadeId: "nars-deauville", level: "possible", explanation: "Похожая глубина с более сияющим финишем" },
+  { sourceShadeId: "mac-nc20", targetShadeId: "3ina-602", level: "close", explanation: "Похожая глубина и тёпло-нейтральное направление" },
+  { sourceShadeId: "mac-nc20", targetShadeId: "essence-40", level: "possible", explanation: "Более тёплый вариант в стойкой матовой формуле" },
+  { sourceShadeId: "mac-nc25", targetShadeId: "atelier-w20", level: "close", explanation: "Близкий тёплый оттенок в более лёгкой формуле" },
+  { sourceShadeId: "mac-nc25", targetShadeId: "nars-fiji", level: "close", explanation: "Близкая глубина и тёплое направление" },
+  { sourceShadeId: "mac-nc25", targetShadeId: "payot-02", level: "possible", explanation: "Тёплое направление с более сияющим покрытием" },
+  { sourceShadeId: "mac-nc30", targetShadeId: "lab-cream-n3", level: "possible", explanation: "Предварительный вариант схожей глубины в кремовой формуле" },
+  { sourceShadeId: "dior-1n", targetShadeId: "atelier-n20", level: "possible", explanation: "Похожий нейтральный подтон, чуть плотнее по глубине" },
+  { sourceShadeId: "nars-deauville", targetShadeId: "forma-n1", level: "close", explanation: "Схожая глубина и нейтральный подтон" },
+];
+
+export const stores = [
+  { id: "store-a", name: "Магазин A", priceDelta: 0, available: true },
+  { id: "store-b", name: "Магазин B", priceDelta: 250, available: true },
+  { id: "store-c", name: "Магазин C", priceDelta: -100, available: false },
+];
+
+export const finishLabels = { matte: "Матовый", natural: "Естественный", radiant: "Сияющий" } as const;
+
+export function findProductByShade(shadeId?: string | null) {
+  return products.find((product) => product.shades.some((shade) => shade.id === shadeId));
+}
+
+export function findShade(shadeId?: string | null) {
+  return products.flatMap((product) => product.shades).find((shade) => shade.id === shadeId);
+}
