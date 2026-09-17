@@ -2,6 +2,8 @@ import { createContext, useContext, useEffect, useMemo, useState, type ReactNode
 import type { Feedback, Preferences, ToneFit, ToneShift } from "./types";
 
 type PersistedState = {
+  sourceProductIds: string[];
+  sourceShadeIds: Record<string, string>;
   sourceProductId: string | null;
   sourceShadeId: string | null;
   fit: ToneFit | null;
@@ -12,6 +14,8 @@ type PersistedState = {
 };
 
 type AppStore = PersistedState & {
+  toggleSourceProductId: (value: string) => void;
+  setSourceShadeForProduct: (productId: string, shadeId: string) => void;
   setSourceProductId: (value: string | null) => void;
   setSourceShadeId: (value: string | null) => void;
   setFit: (value: ToneFit | null) => void;
@@ -23,6 +27,8 @@ type AppStore = PersistedState & {
 };
 
 const initialState: PersistedState = {
+  sourceProductIds: [],
+  sourceShadeIds: {},
   sourceProductId: null,
   sourceShadeId: null,
   fit: null,
@@ -38,7 +44,27 @@ const storageKey = "skincode-demo-state-v1";
 function readState(): PersistedState {
   try {
     const value = localStorage.getItem(storageKey);
-    return value ? { ...initialState, ...JSON.parse(value) } : initialState;
+    if (!value) return initialState;
+    const parsed = JSON.parse(value) as Partial<PersistedState>;
+    const sourceProductIds = parsed.sourceProductIds?.length
+      ? parsed.sourceProductIds
+      : parsed.sourceProductId
+        ? [parsed.sourceProductId]
+        : [];
+    const sourceShadeIds = parsed.sourceShadeIds ?? (
+      parsed.sourceProductId && parsed.sourceShadeId
+        ? { [parsed.sourceProductId]: parsed.sourceShadeId }
+        : {}
+    );
+    const sourceProductId = sourceProductIds[0] ?? null;
+    return {
+      ...initialState,
+      ...parsed,
+      sourceProductIds,
+      sourceShadeIds,
+      sourceProductId,
+      sourceShadeId: sourceProductId ? sourceShadeIds[sourceProductId] ?? null : null,
+    };
   } catch {
     return initialState;
   }
@@ -53,8 +79,46 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   const value = useMemo<AppStore>(() => ({
     ...state,
-    setSourceProductId: (sourceProductId) => setState((current) => ({ ...current, sourceProductId, sourceShadeId: null })),
-    setSourceShadeId: (sourceShadeId) => setState((current) => ({ ...current, sourceShadeId })),
+    toggleSourceProductId: (productId) => setState((current) => {
+      const selected = current.sourceProductIds.includes(productId);
+      const sourceProductIds = selected
+        ? current.sourceProductIds.filter((id) => id !== productId)
+        : [...current.sourceProductIds, productId];
+      const sourceShadeIds = { ...current.sourceShadeIds };
+      if (selected) delete sourceShadeIds[productId];
+      const sourceProductId = sourceProductIds[0] ?? null;
+      return {
+        ...current,
+        sourceProductIds,
+        sourceShadeIds,
+        sourceProductId,
+        sourceShadeId: sourceProductId ? sourceShadeIds[sourceProductId] ?? null : null,
+      };
+    }),
+    setSourceShadeForProduct: (productId, shadeId) => setState((current) => {
+      const sourceShadeIds = { ...current.sourceShadeIds, [productId]: shadeId };
+      const sourceProductId = current.sourceProductIds[0] ?? productId;
+      return {
+        ...current,
+        sourceProductId,
+        sourceShadeIds,
+        sourceShadeId: sourceShadeIds[sourceProductId] ?? null,
+      };
+    }),
+    setSourceProductId: (sourceProductId) => setState((current) => ({
+      ...current,
+      sourceProductIds: sourceProductId ? [sourceProductId] : [],
+      sourceShadeIds: {},
+      sourceProductId,
+      sourceShadeId: null,
+    })),
+    setSourceShadeId: (sourceShadeId) => setState((current) => ({
+      ...current,
+      sourceShadeId,
+      sourceShadeIds: current.sourceProductId && sourceShadeId
+        ? { ...current.sourceShadeIds, [current.sourceProductId]: sourceShadeId }
+        : current.sourceShadeIds,
+    })),
     setFit: (fit) => setState((current) => ({ ...current, fit })),
     toggleShift: (shift) => setState((current) => ({
       ...current,
@@ -69,7 +133,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       ...current,
       feedback: { ...current.feedback, [shadeId]: feedback },
     })),
-    resetMatch: () => setState((current) => ({ ...current, sourceProductId: null, sourceShadeId: null, fit: null, shifts: [], preferences: initialState.preferences })),
+    resetMatch: () => setState((current) => ({ ...current, sourceProductIds: [], sourceShadeIds: {}, sourceProductId: null, sourceShadeId: null, fit: null, shifts: [], preferences: initialState.preferences })),
   }), [state]);
 
   return <StoreContext.Provider value={value}>{children}</StoreContext.Provider>;

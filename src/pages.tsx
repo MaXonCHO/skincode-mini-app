@@ -5,6 +5,7 @@ import {
   ArrowRight,
   Bookmark,
   Check,
+  ChevronLeft,
   ChevronRight,
   CircleHelp,
   ExternalLink,
@@ -92,7 +93,7 @@ export function HomePage() {
 
 export function ProductSearchPage() {
   const navigate = useNavigate();
-  const { sourceProductId, setSourceProductId } = useAppStore();
+  const { sourceProductIds, toggleSourceProductId } = useAppStore();
   const [query, setQuery] = useState("");
   const normalizedQuery = query.toLowerCase().trim();
   const popularProductIds = new Set(["mac-studio-fix", "3ina-every-single-day", "essence-stay-all-day", "payot-roselift-cc", "skincode-nude-serum"]);
@@ -106,7 +107,7 @@ export function ProductSearchPage() {
       <div className="title-block">
         <p className="eyebrow">ТВОЙ ЭТАЛОН</p>
         <h1>Чем ты пользуешься?</h1>
-        <p>Найди своё тональное средство в списке.</p>
+        <p>Выбери одно или несколько средств, которыми ты пользуешься.</p>
       </div>
       <label className="search-field">
         <span className="sr-only">Бренд или название</span>
@@ -117,7 +118,7 @@ export function ProductSearchPage() {
       <p className="field-caption">{query ? `Найдено: ${filtered.length}` : "Популярные средства"}</p>
       <div className="product-list">
         {filtered.map((product) => (
-          <ProductRow key={product.id} product={product} selected={sourceProductId === product.id} onClick={() => setSourceProductId(product.id)} />
+          <ProductRow key={product.id} product={product} selected={sourceProductIds.includes(product.id)} onClick={() => toggleSourceProductId(product.id)} />
         ))}
       </div>
       {!filtered.length && (
@@ -130,7 +131,8 @@ export function ProductSearchPage() {
       )}
       <button className="text-button inline-link" onClick={() => navigate("/missing")}>Нет моего средства</button>
       <div className="sticky-actions">
-        <PrimaryButton disabled={!sourceProductId} onClick={() => navigate("/shade")}>Выбрать оттенок <ArrowRight size={19} /></PrimaryButton>
+        {sourceProductIds.length > 0 && <p className="selection-summary" aria-live="polite">Выбрано средств: <strong>{sourceProductIds.length}</strong></p>}
+        <PrimaryButton disabled={!sourceProductIds.length} onClick={() => navigate("/shade")}>Выбрать оттенки <ArrowRight size={19} /></PrimaryButton>
       </div>
     </section>
   );
@@ -138,11 +140,43 @@ export function ProductSearchPage() {
 
 export function ShadeSelectPage() {
   const navigate = useNavigate();
-  const { sourceProductId, sourceShadeId, setSourceShadeId } = useAppStore();
+  const { sourceProductIds, sourceShadeIds, setSourceShadeForProduct } = useAppStore();
+  const [activeIndex, setActiveIndex] = useState(0);
   const [query, setQuery] = useState("");
-  const product = products.find((item) => item.id === sourceProductId);
+  const selectedProducts = sourceProductIds.map((id) => products.find((item) => item.id === id)).filter((item): item is (typeof products)[number] => Boolean(item));
+  const product = selectedProducts[activeIndex];
+  const [focusedShadeId, setFocusedShadeId] = useState<string | null>(null);
   if (!product) return <MissingSelection />;
   const shades = product.shades.filter((shade) => shade.code.toLowerCase().includes(query.toLowerCase().trim()));
+  const selectedShadeId = sourceShadeIds[product.id] ?? null;
+  const completedCount = selectedProducts.filter((item) => sourceShadeIds[item.id]).length;
+  const allComplete = completedCount === selectedProducts.length;
+
+  const selectProduct = (index: number) => {
+    const nextProduct = selectedProducts[index];
+    setActiveIndex(index);
+    setQuery("");
+    setFocusedShadeId(sourceShadeIds[nextProduct.id] ?? nextProduct.shades[0]?.id ?? null);
+  };
+
+  const focusShade = (shadeId: string) => {
+    setFocusedShadeId(shadeId);
+    window.requestAnimationFrame(() => document.getElementById(`shade-${shadeId}`)?.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" }));
+  };
+
+  const moveShade = (direction: -1 | 1) => {
+    if (!shades.length) return;
+    const currentId = focusedShadeId ?? selectedShadeId ?? shades[0].id;
+    const currentIndex = Math.max(0, shades.findIndex((shade) => shade.id === currentId));
+    const nextIndex = Math.min(shades.length - 1, Math.max(0, currentIndex + direction));
+    focusShade(shades[nextIndex].id);
+  };
+
+  const continueFlow = () => {
+    if (!selectedShadeId) return;
+    if (activeIndex < selectedProducts.length - 1) selectProduct(activeIndex + 1);
+    else if (allComplete) navigate("/fit");
+  };
 
   return (
     <section className="screen flow-screen">
@@ -150,10 +184,29 @@ export function ShadeSelectPage() {
       <div className="title-block">
         <p className="eyebrow">ОТТЕНОК НА ФЛАКОНЕ</p>
         <h1>Какой у тебя оттенок?</h1>
-        <p>Выбирай номер на флаконе, а не цвет на экране.</p>
+        <p>Выбери оттенок отдельно для каждого средства.</p>
       </div>
+      {selectedProducts.length > 1 && (
+        <div className="product-stepper" role="tablist" aria-label="Выбранные средства">
+          {selectedProducts.map((item, index) => (
+            <button
+              key={item.id}
+              className={index === activeIndex ? "is-active" : ""}
+              onClick={() => selectProduct(index)}
+              role="tab"
+              aria-selected={index === activeIndex}
+              aria-label={`${item.brand} ${item.name}${sourceShadeIds[item.id] ? ", оттенок выбран" : ""}`}
+            >
+              <Bottle product={item} size="sm" />
+              <span>{index + 1}</span>
+              {sourceShadeIds[item.id] && <Check size={14} aria-hidden="true" />}
+            </button>
+          ))}
+        </div>
+      )}
+      <div className="shade-progress"><span>Средство {activeIndex + 1} из {selectedProducts.length}</span><strong>{completedCount}/{selectedProducts.length} готово</strong></div>
       <GlassCard className="selected-product-card">
-        <Bottle product={product} size="md" />
+        <Bottle product={product} size="lg" />
         <div><strong>{product.brand}</strong><h3>{product.name}</h3><p>{product.description}</p></div>
       </GlassCard>
       <label className="search-field">
@@ -161,18 +214,34 @@ export function ShadeSelectPage() {
         <Search size={20} />
         <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Поиск оттенка, например NC20" />
       </label>
-      <div className="shade-grid" role="list" aria-label="Доступные оттенки">
-        {shades.map((shade) => (
-          <button key={shade.id} className="shade-option" onClick={() => setSourceShadeId(shade.id)} aria-pressed={sourceShadeId === shade.id}>
-            <Swatch shade={shade} selected={sourceShadeId === shade.id} />
-            <strong>{shade.code}</strong>
-            <small>{shade.name}</small>
-          </button>
-        ))}
+      <div className="shade-carousel-shell">
+        <button className="carousel-arrow carousel-arrow--left" onClick={() => moveShade(-1)} aria-label="Предыдущий оттенок"><ChevronLeft size={22} /></button>
+        <div className="shade-carousel" role="listbox" aria-label={`Оттенки ${product.brand} ${product.name}`}>
+          {shades.map((shade) => (
+            <button
+              id={`shade-${shade.id}`}
+              key={shade.id}
+              className={`shade-option ${focusedShadeId === shade.id ? "is-focused" : ""}`}
+              onFocus={() => setFocusedShadeId(shade.id)}
+              onClick={() => { setSourceShadeForProduct(product.id, shade.id); focusShade(shade.id); }}
+              role="option"
+              aria-selected={selectedShadeId === shade.id}
+            >
+              <Swatch shade={shade} selected={selectedShadeId === shade.id} />
+              <strong>{shade.code}</strong>
+              <small>{shade.name}</small>
+              <span className="shade-check" aria-hidden="true">{selectedShadeId === shade.id ? <Check size={15} /> : null}</span>
+            </button>
+          ))}
+        </div>
+        <button className="carousel-arrow carousel-arrow--right" onClick={() => moveShade(1)} aria-label="Следующий оттенок"><ChevronRight size={22} /></button>
       </div>
+      {!shades.length && <p className="carousel-empty">Оттенок с таким кодом не найден.</p>}
       <div className="info-row"><Info size={18} /><span>Цвет кружка — только ориентир. Сверь код на упаковке.</span></div>
       <div className="sticky-actions">
-        <PrimaryButton disabled={!sourceShadeId} onClick={() => navigate("/fit")}>Продолжить <ArrowRight size={19} /></PrimaryButton>
+        <PrimaryButton disabled={!selectedShadeId || (activeIndex === selectedProducts.length - 1 && !allComplete)} onClick={continueFlow}>
+          {activeIndex < selectedProducts.length - 1 ? <>Следующее средство <ArrowRight size={19} /></> : <>Продолжить <ArrowRight size={19} /></>}
+        </PrimaryButton>
       </div>
     </section>
   );
@@ -218,14 +287,15 @@ export function FitPage() {
 
 export function PreferencesPage() {
   const navigate = useNavigate();
-  const { sourceShadeId, preferences, setPreferences } = useAppStore();
+  const { sourceShadeIds, preferences, setPreferences } = useAppStore();
   const [matching, setMatching] = useState(false);
 
   const update = <K extends keyof typeof preferences>(key: K, value: (typeof preferences)[K]) => setPreferences({ ...preferences, [key]: value });
   const finish = () => {
     setMatching(true);
     window.setTimeout(() => {
-      const hasMatches = matches.some((match) => match.sourceShadeId === sourceShadeId);
+      const selectedShadeIds = Object.values(sourceShadeIds);
+      const hasMatches = matches.some((match) => selectedShadeIds.includes(match.sourceShadeId));
       navigate(hasMatches ? "/results" : "/no-match");
     }, 520);
   };
@@ -258,13 +328,14 @@ export function PreferencesPage() {
 }
 
 function useRecommendations() {
-  const { sourceShadeId, preferences } = useAppStore();
-  return getRecommendations(sourceShadeId, preferences);
+  const { sourceProductIds, sourceShadeIds, preferences } = useAppStore();
+  const orderedShadeIds = sourceProductIds.map((productId) => sourceShadeIds[productId]).filter(Boolean);
+  return getRecommendations(orderedShadeIds, preferences);
 }
 
 export function ResultsPage() {
   const navigate = useNavigate();
-  const { sourceShadeId, saved, toggleSaved } = useAppStore();
+  const { sourceProductIds, sourceShadeId, saved, toggleSaved } = useAppStore();
   const [filter, setFilter] = useState<"all" | "available" | "budget">("all");
   const recommendations = useRecommendations();
   const shown = recommendations.filter((item) => filter === "all" || (filter === "available" ? item.product.available : item.product.price <= 3000));
@@ -273,9 +344,9 @@ export function ResultsPage() {
   return (
     <section className="screen results-screen">
       <header className="simple-top"><button className="icon-button" onClick={() => navigate("/preferences")} aria-label="Назад"><ArrowLeft size={24} /></button><Wordmark compact /><span /></header>
-      <div className="title-block compact-title"><p className="eyebrow">ПРЕДВАРИТЕЛЬНЫЕ ВАРИАНТЫ</p><h1>Твои новые тона</h1><p>На основе {sourceProduct.brand} {sourceProduct.name} {sourceShade.code}</p></div>
+      <div className="title-block compact-title"><p className="eyebrow">ПРЕДВАРИТЕЛЬНЫЕ ВАРИАНТЫ</p><h1>Твои новые тона</h1><p>{sourceProductIds.length > 1 ? `На основе ${sourceProductIds.length} знакомых средств` : `На основе ${sourceProduct.brand} ${sourceProduct.name} ${sourceShade.code}`}</p></div>
       <button className="source-strip" onClick={() => navigate("/shade")}>
-        <Bottle product={sourceProduct} size="sm" /><span><small>Твой эталон</small><strong>{sourceProduct.brand} {sourceShade.code}</strong></span><ChevronRight size={20} />
+        <Bottle product={sourceProduct} size="sm" /><span><small>{sourceProductIds.length > 1 ? "Твои эталоны" : "Твой эталон"}</small><strong>{sourceProduct.brand} {sourceShade.code}{sourceProductIds.length > 1 ? ` · ещё ${sourceProductIds.length - 1}` : ""}</strong></span><ChevronRight size={20} />
       </button>
       <div className="filter-row" aria-label="Фильтры результата">
         <ChoiceChip selected={filter === "all"} onClick={() => setFilter("all")}>Все</ChoiceChip>

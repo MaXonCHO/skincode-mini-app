@@ -33,4 +33,13 @@ describe("getRecommendations", () => {
     expect(getRecommendations("rare-170w", defaults)).toEqual([]);
     expect(getRecommendations(null, defaults)).toEqual([]);
   });
+
+  it("combines recommendations from multiple familiar shades without duplicates", () => {
+    const results = getRecommendations(["mac-nc15", "mac-nc20"], defaults);
+    const shadeIds = results.map((item) => item.shade.id);
+
+    expect(shadeIds).toContain("dior-1n");
+    expect(shadeIds).toContain("3ina-602");
+    expect(new Set(shadeIds).size).toBe(shadeIds.length);
+  });
 });
