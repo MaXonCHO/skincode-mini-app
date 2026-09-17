@@ -6,10 +6,7 @@ import { finishLabels } from "./data";
 
 export function Wordmark({ compact = false }: { compact?: boolean }) {
   return (
-    <div className={`wordmark ${compact ? "wordmark--compact" : ""}`} aria-label="SkinCode">
-      SKINCODE
-      {compact && <span>BEAUTY IN BALANCE</span>}
-    </div>
+    <div className="wordmark" data-compact={compact || undefined} aria-label="SkinCode">SKINCODE</div>
   );
 }
 

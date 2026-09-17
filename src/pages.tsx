@@ -89,12 +89,10 @@ export function HomePage() {
       <div className="hero-copy">
         <p className="eyebrow">ПОДБОР БЕЗ ФОТО</p>
         <h1>Твой тон.<br />В новом флаконе.</h1>
-        <p>Подберём новое средство по оттенку, который тебе уже подходит.</p>
       </div>
       <div className="hero-visual">
         <span className="foundation-stroke" />
         <img className="hero-product-image" src="/assets/skincode-foundation-hero-ui.png" alt="Флакон тонального средства в композиции из прозрачного стекла" width="600" height="900" />
-        <span className="hero-tag">БЕЗ СКАНИРОВАНИЯ<br />И ЦВЕТОТЕСТОВ</span>
       </div>
       <div className="sticky-actions home-actions">
         <PrimaryButton onClick={() => navigate("/select")}>Подобрать оттенок <ArrowRight size={19} /></PrimaryButton>
