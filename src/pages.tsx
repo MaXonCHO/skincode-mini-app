@@ -183,7 +183,7 @@ export function ProductSearchPage() {
           action={<SecondaryButton onClick={() => navigate("/missing")}>Отправить название</SecondaryButton>}
         />
       )}
-      <div className="sticky-actions">
+      <div className="sticky-actions selection-actions">
         {sourceProductIds.length > 0 && <p className="selection-summary" aria-live="polite">Выбрано средств: <strong>{sourceProductIds.length}</strong></p>}
         <PrimaryButton disabled={!sourceProductIds.length} onClick={() => navigate("/shade")}>Выбрать оттенки <ArrowRight size={19} /></PrimaryButton>
         <button className="text-button inline-link" onClick={() => navigate("/missing")}>Нет моего средства</button>

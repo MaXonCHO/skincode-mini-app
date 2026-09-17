@@ -35,8 +35,8 @@ async function sendIllustratedMessage(api, payload) {
 async function sendWelcome(api, chatId, miniAppUrl) {
   await sendIllustratedMessage(api, {
     chat_id: chatId,
-    photo: appAsset(miniAppUrl, "skincode-foundation-hero-ui.png"),
-    caption: "Твой тон — в новом флаконе.\n\nДобавь знакомое тональное средство и его оттенок — SkinCode покажет близкие варианты без фото и сканирования.",
+    photo: appAsset(miniAppUrl, "exec-424d7a2f-446b-46bb-a132-3831e5b1b2f9.png"),
+    caption: "Привет! Это SkinCode.\n\nВыбери тональное средство, которое тебе подходит, и мы покажем похожие оттенки в других брендах. Без фото и сканирования.\n\nНачнём?",
     reply_markup: appKeyboard(miniAppUrl),
   });
 }
