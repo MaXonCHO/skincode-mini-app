@@ -6,6 +6,7 @@ export async function configureBot(api, miniAppUrl) {
       { command: "start", description: "Открыть SkinCode" },
       { command: "app", description: "Запустить подбор оттенка" },
       { command: "help", description: "Как работает подбор" },
+      { command: "tips", description: "Советы для точного подбора" },
     ],
   });
 

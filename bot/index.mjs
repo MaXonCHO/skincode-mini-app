@@ -15,10 +15,46 @@ function appKeyboard(miniAppUrl) {
   };
 }
 
+function appAsset(miniAppUrl, filename) {
+  return new URL(`/assets/${filename}`, miniAppUrl).toString();
+}
+
+async function sendIllustratedMessage(api, payload) {
+  try {
+    await api("sendPhoto", payload);
+  } catch (error) {
+    console.warn(error instanceof Error ? `${error.message} Falling back to text.` : "Could not send image. Falling back to text.");
+    await api("sendMessage", {
+      chat_id: payload.chat_id,
+      text: payload.caption,
+      reply_markup: payload.reply_markup,
+    });
+  }
+}
+
 async function sendWelcome(api, chatId, miniAppUrl) {
-  await api("sendMessage", {
+  await sendIllustratedMessage(api, {
     chat_id: chatId,
-    text: "Твой тон — в новом флаконе. Выбери средство, которое уже подходит, и посмотри предварительные варианты без фото.",
+    photo: appAsset(miniAppUrl, "skincode-foundation-hero-ui.png"),
+    caption: "Твой тон — в новом флаконе.\n\nДобавь знакомое тональное средство и его оттенок — SkinCode покажет близкие варианты без фото и сканирования.",
+    reply_markup: appKeyboard(miniAppUrl),
+  });
+}
+
+async function sendHelp(api, chatId, miniAppUrl) {
+  await sendIllustratedMessage(api, {
+    chat_id: chatId,
+    photo: appAsset(miniAppUrl, "foundation-smear-ui.png"),
+    caption: "Как работает SkinCode:\n\n1. Добавь одно или несколько знакомых тональных средств.\n2. Укажи оттенок и оцени, как каждый из них выглядит на коже.\n3. Настрой финиш и бюджет — и получи рекомендации.",
+    reply_markup: appKeyboard(miniAppUrl),
+  });
+}
+
+async function sendTips(api, chatId, miniAppUrl) {
+  await sendIllustratedMessage(api, {
+    chat_id: chatId,
+    photo: appAsset(miniAppUrl, "skincode-foundation-catalog-ui.png"),
+    caption: "Три подсказки для более точного результата:\n\n• Проверь код оттенка на упаковке.\n• Добавь несколько средств, если пользуешься ими в разные сезоны.\n• Оцени рекомендации при дневном свете перед покупкой.",
     reply_markup: appKeyboard(miniAppUrl),
   });
 }
@@ -30,7 +66,8 @@ async function handleMessage(api, message, miniAppUrl) {
   if (message.web_app_data?.data) {
     await api("sendMessage", {
       chat_id: chatId,
-      text: "Данные из SkinCode получены.",
+      text: "Готово — данные из SkinCode получены. Сохранённые оттенки можно открыть в приложении в любой момент.",
+      reply_markup: appKeyboard(miniAppUrl),
     });
     return;
   }
@@ -42,11 +79,12 @@ async function handleMessage(api, message, miniAppUrl) {
   }
 
   if (command === "/help") {
-    await api("sendMessage", {
-      chat_id: chatId,
-      text: "SkinCode сравнивает выбранный тобой знакомый оттенок с демонстрационной локальной базой. Результаты предварительные — проверяй средство при дневном свете.",
-      reply_markup: appKeyboard(miniAppUrl),
-    });
+    await sendHelp(api, chatId, miniAppUrl);
+    return;
+  }
+
+  if (command === "/tips") {
+    await sendTips(api, chatId, miniAppUrl);
     return;
   }
 
