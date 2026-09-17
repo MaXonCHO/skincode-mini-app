@@ -187,10 +187,10 @@ export function ProductSearchPage() {
           action={<SecondaryButton onClick={() => navigate("/missing")}>Отправить название</SecondaryButton>}
         />
       )}
-      <button className="text-button inline-link" onClick={() => navigate("/missing")}>Нет моего средства</button>
       <div className="sticky-actions">
         {sourceProductIds.length > 0 && <p className="selection-summary" aria-live="polite">Выбрано средств: <strong>{sourceProductIds.length}</strong></p>}
         <PrimaryButton disabled={!sourceProductIds.length} onClick={() => navigate("/shade")}>Выбрать оттенки <ArrowRight size={19} /></PrimaryButton>
+        <button className="text-button inline-link" onClick={() => navigate("/missing")}>Нет моего средства</button>
       </div>
     </section>
   );
@@ -287,7 +287,6 @@ export function ShadeSelectPage() {
         </div>
         <button className="carousel-arrow carousel-arrow--right" onClick={() => moveShade(1)} aria-label="Следующий оттенок"><ChevronRight size={22} /></button>
       </div>
-      <div className="info-row"><Info size={18} /><span>Цвет мазка — только ориентир. Сверь код на упаковке.</span></div>
       <div className="sticky-actions">
         <PrimaryButton disabled={!selectedShadeId || (activeIndex === selectedProducts.length - 1 && !allComplete)} onClick={continueFlow}>
           {activeIndex < selectedProducts.length - 1 ? <>Следующее средство <ArrowRight size={19} /></> : <>Продолжить <ArrowRight size={19} /></>}
@@ -299,7 +298,7 @@ export function ShadeSelectPage() {
 
 export function FitPage() {
   const navigate = useNavigate();
-  const { sourceProductIds, sourceShadeIds, fit, shifts, setFit, toggleShift } = useAppStore();
+  const { sourceProductIds, sourceShadeIds, sourceComments, fit, shifts, setFit, toggleShift, setSourceComment } = useAppStore();
   const references = sourceProductIds.map((productId) => {
     const product = products.find((item) => item.id === productId);
     const shade = findShade(sourceShadeIds[productId]);
@@ -322,6 +321,15 @@ export function FitPage() {
             <Bottle product={product} size="md" />
             <div><strong>{product.brand}</strong><h3>{product.name}</h3><span className="shade-chip">{shade.code}</span></div>
             <Swatch shade={shade} size="sm" />
+            <label className="reference-comment">
+              <span>Комментарий к средству <small>необязательно</small></span>
+              <textarea
+                value={sourceComments[product.id] ?? ""}
+                onChange={(event) => setSourceComment(product.id, event.target.value)}
+                placeholder="Например: идеально зимой, летом немного светлый"
+                maxLength={400}
+              />
+            </label>
           </GlassCard>
         ))}
       </div>
@@ -334,9 +342,9 @@ export function FitPage() {
         <div className="chip-row">{shiftOptions.map(([value, label]) => <ChoiceChip key={value} selected={shifts.includes(value)} onClick={() => toggleShift(value)}>{label}</ChoiceChip>)}</div>
         <p className="helper-text">Можно отметить отдельно от основной оценки.</p>
       </fieldset>
-      <button className="add-reference glass-card" onClick={() => navigate("/select")}><Plus size={22} /><div><strong>Изменить список средств</strong><p>Добавь или убери знакомые тональные средства.</p></div></button>
       <div className="sticky-actions">
         <PrimaryButton disabled={!fit} onClick={() => navigate("/preferences")}>Продолжить <ArrowRight size={19} /></PrimaryButton>
+        <button className="text-button inline-link" onClick={() => navigate("/select")}>Изменить список средств</button>
         <DemoNote>Подтверждённый оттенок — основа подбора.</DemoNote>
       </div>
     </section>

@@ -1,5 +1,5 @@
 import type { ButtonHTMLAttributes, ReactNode } from "react";
-import { Bookmark, Heart, Home, Search, Sparkles } from "lucide-react";
+import { Bookmark, Heart, Home, Sparkles } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import type { Product, Shade } from "./types";
 import { finishLabels } from "./data";
@@ -132,7 +132,6 @@ export function BottomNavigation() {
   return (
     <nav className="bottom-nav" aria-label="Основная навигация">
       <NavLink to="/" end><Home size={22} /><span>Главная</span></NavLink>
-      <NavLink to="/select"><Search size={22} /><span>Подбор</span></NavLink>
       <NavLink to="/saved" className={savedIsActive ? "active" : undefined}><Bookmark size={22} /><span>Сохранённое</span></NavLink>
     </nav>
   );
