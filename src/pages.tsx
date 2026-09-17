@@ -58,7 +58,6 @@ function getSourceSummary(sourceShadeId: string | null) {
 
 export function HomePage() {
   const navigate = useNavigate();
-  const { saved } = useAppStore();
 
   useEffect(() => {
     const elements = Array.from(document.querySelectorAll<HTMLElement>(".reveal-on-scroll"));
@@ -82,9 +81,6 @@ export function HomePage() {
     <section className="screen home-screen">
       <header className="home-header">
         <Wordmark />
-        <button className="icon-button" onClick={() => navigate("/saved")} aria-label="Сохранённые подборки">
-          <Bookmark size={23} fill={saved.length ? "currentColor" : "none"} />
-        </button>
       </header>
       <div className="hero-copy">
         <p className="eyebrow">ПОДБОР БЕЗ ФОТО</p>
@@ -105,11 +101,11 @@ export function HomePage() {
         <div className="how-steps">
           <article className="how-step reveal-on-scroll">
             <span>01</span>
-            <div><h3>Расскажи о своей коже</h3><p>Укажи подтон и тип кожи — это поможет точнее определить подходящее направление оттенка.</p></div>
+            <div><h3>Добавь своё тональное средство</h3><p>Выбери одно или несколько знакомых средств и укажи оттенок каждого из них.</p></div>
           </article>
           <article className="how-step reveal-on-scroll reveal-delay-1">
             <span>02</span>
-            <div><h3>Добавь свои тональные средства</h3><p>Выбери несколько знакомых средств и укажи оттенок каждого из них.</p></div>
+            <div><h3>Расскажи о своей коже</h3><p>Укажи тип кожи и предпочтения — это поможет точнее подобрать комфортный финиш и покрытие.</p></div>
           </article>
           <article className="how-step reveal-on-scroll reveal-delay-2">
             <span>03</span>
@@ -298,7 +294,7 @@ export function ShadeSelectPage() {
 
 export function FitPage() {
   const navigate = useNavigate();
-  const { sourceProductIds, sourceShadeIds, sourceComments, fit, shifts, setFit, toggleShift, setSourceComment } = useAppStore();
+  const { sourceProductIds, sourceShadeIds, sourceFits, sourceShifts, setSourceFit, toggleSourceShift } = useAppStore();
   const references = sourceProductIds.map((productId) => {
     const product = products.find((item) => item.id === productId);
     const shade = findShade(sourceShadeIds[productId]);
@@ -307,6 +303,7 @@ export function FitPage() {
   if (!references.length) return <MissingSelection />;
   const fits: [ToneFit, string][] = [["perfect", "Идеально"], ["lighter", "Светлее кожи"], ["darker", "Темнее кожи"]];
   const shiftOptions: [ToneShift, string][] = [["yellow", "Желтит"], ["pink", "Розовит"]];
+  const allFitsSelected = references.every(({ product }) => Boolean(sourceFits[product.id]));
   return (
     <section className="screen flow-screen">
       <PageHeader step="Шаг 2 из 3" />
@@ -321,29 +318,22 @@ export function FitPage() {
             <Bottle product={product} size="md" />
             <div><strong>{product.brand}</strong><h3>{product.name}</h3><span className="shade-chip">{shade.code}</span></div>
             <Swatch shade={shade} size="sm" />
-            <label className="reference-comment">
-              <span>Комментарий к средству <small>необязательно</small></span>
-              <textarea
-                value={sourceComments[product.id] ?? ""}
-                onChange={(event) => setSourceComment(product.id, event.target.value)}
-                placeholder="Например: идеально зимой, летом немного светлый"
-                maxLength={400}
-              />
-            </label>
+            <div className="reference-evaluation">
+              <fieldset>
+                <legend>Как выглядит на твоей коже?</legend>
+                <div className="chip-row">{fits.map(([value, label]) => <ChoiceChip key={value} selected={sourceFits[product.id] === value} onClick={() => setSourceFit(product.id, value)}>{label}</ChoiceChip>)}</div>
+              </fieldset>
+              <fieldset>
+                <legend>Есть ли цветовой сдвиг?</legend>
+                <div className="chip-row">{shiftOptions.map(([value, label]) => <ChoiceChip key={value} selected={(sourceShifts[product.id] ?? []).includes(value)} onClick={() => toggleSourceShift(product.id, value)}>{label}</ChoiceChip>)}</div>
+                <p className="helper-text">Можно отметить отдельно от основной оценки.</p>
+              </fieldset>
+            </div>
           </GlassCard>
         ))}
       </div>
-      <fieldset>
-        <legend>Как выглядит на твоей коже?</legend>
-        <div className="chip-row">{fits.map(([value, label]) => <ChoiceChip key={value} selected={fit === value} onClick={() => setFit(value)}>{label}</ChoiceChip>)}</div>
-      </fieldset>
-      <fieldset>
-        <legend>Есть ли цветовой сдвиг?</legend>
-        <div className="chip-row">{shiftOptions.map(([value, label]) => <ChoiceChip key={value} selected={shifts.includes(value)} onClick={() => toggleShift(value)}>{label}</ChoiceChip>)}</div>
-        <p className="helper-text">Можно отметить отдельно от основной оценки.</p>
-      </fieldset>
       <div className="sticky-actions">
-        <PrimaryButton disabled={!fit} onClick={() => navigate("/preferences")}>Продолжить <ArrowRight size={19} /></PrimaryButton>
+        <PrimaryButton disabled={!allFitsSelected} onClick={() => navigate("/preferences")}>Продолжить <ArrowRight size={19} /></PrimaryButton>
         <button className="text-button inline-link" onClick={() => navigate("/select")}>Изменить список средств</button>
         <DemoNote>Подтверждённый оттенок — основа подбора.</DemoNote>
       </div>

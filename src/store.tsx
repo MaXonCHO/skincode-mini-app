@@ -4,7 +4,8 @@ import type { Feedback, Preferences, ToneFit, ToneShift } from "./types";
 type PersistedState = {
   sourceProductIds: string[];
   sourceShadeIds: Record<string, string>;
-  sourceComments: Record<string, string>;
+  sourceFits: Record<string, ToneFit>;
+  sourceShifts: Record<string, ToneShift[]>;
   sourceProductId: string | null;
   sourceShadeId: string | null;
   fit: ToneFit | null;
@@ -17,7 +18,8 @@ type PersistedState = {
 type AppStore = PersistedState & {
   toggleSourceProductId: (value: string) => void;
   setSourceShadeForProduct: (productId: string, shadeId: string) => void;
-  setSourceComment: (productId: string, comment: string) => void;
+  setSourceFit: (productId: string, value: ToneFit) => void;
+  toggleSourceShift: (productId: string, value: ToneShift) => void;
   setSourceProductId: (value: string | null) => void;
   setSourceShadeId: (value: string | null) => void;
   setFit: (value: ToneFit | null) => void;
@@ -31,7 +33,8 @@ type AppStore = PersistedState & {
 const initialState: PersistedState = {
   sourceProductIds: [],
   sourceShadeIds: {},
-  sourceComments: {},
+  sourceFits: {},
+  sourceShifts: {},
   sourceProductId: null,
   sourceShadeId: null,
   fit: null,
@@ -88,15 +91,18 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         ? current.sourceProductIds.filter((id) => id !== productId)
         : [...current.sourceProductIds, productId];
       const sourceShadeIds = { ...current.sourceShadeIds };
-      const sourceComments = { ...current.sourceComments };
+      const sourceFits = { ...current.sourceFits };
+      const sourceShifts = { ...current.sourceShifts };
       if (selected) delete sourceShadeIds[productId];
-      if (selected) delete sourceComments[productId];
+      if (selected) delete sourceFits[productId];
+      if (selected) delete sourceShifts[productId];
       const sourceProductId = sourceProductIds[0] ?? null;
       return {
         ...current,
         sourceProductIds,
         sourceShadeIds,
-        sourceComments,
+        sourceFits,
+        sourceShifts,
         sourceProductId,
         sourceShadeId: sourceProductId ? sourceShadeIds[sourceProductId] ?? null : null,
       };
@@ -111,15 +117,28 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         sourceShadeId: sourceShadeIds[sourceProductId] ?? null,
       };
     }),
-    setSourceComment: (productId, comment) => setState((current) => ({
+    setSourceFit: (productId, value) => setState((current) => ({
       ...current,
-      sourceComments: { ...current.sourceComments, [productId]: comment },
+      sourceFits: { ...current.sourceFits, [productId]: value },
+      fit: productId === current.sourceProductIds[0] ? value : current.fit,
     })),
+    toggleSourceShift: (productId, value) => setState((current) => {
+      const currentShifts = current.sourceShifts[productId] ?? [];
+      const nextShifts = currentShifts.includes(value)
+        ? currentShifts.filter((item) => item !== value)
+        : [...currentShifts, value];
+      return {
+        ...current,
+        sourceShifts: { ...current.sourceShifts, [productId]: nextShifts },
+        shifts: productId === current.sourceProductIds[0] ? nextShifts : current.shifts,
+      };
+    }),
     setSourceProductId: (sourceProductId) => setState((current) => ({
       ...current,
       sourceProductIds: sourceProductId ? [sourceProductId] : [],
       sourceShadeIds: {},
-      sourceComments: {},
+      sourceFits: {},
+      sourceShifts: {},
       sourceProductId,
       sourceShadeId: null,
     })),
@@ -144,7 +163,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       ...current,
       feedback: { ...current.feedback, [shadeId]: feedback },
     })),
-    resetMatch: () => setState((current) => ({ ...current, sourceProductIds: [], sourceShadeIds: {}, sourceComments: {}, sourceProductId: null, sourceShadeId: null, fit: null, shifts: [], preferences: initialState.preferences })),
+    resetMatch: () => setState((current) => ({ ...current, sourceProductIds: [], sourceShadeIds: {}, sourceFits: {}, sourceShifts: {}, sourceProductId: null, sourceShadeId: null, fit: null, shifts: [], preferences: initialState.preferences })),
   }), [state]);
 
   return <StoreContext.Provider value={value}>{children}</StoreContext.Provider>;
